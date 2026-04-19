@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dr Robotnik Clicker</title>
+<title>The pinGame</title>
 <style>
 body {
     margin: 0;
@@ -162,11 +162,11 @@ button:disabled {
     top: 24px;
     left: 24px;
     max-width: 320px;
-    padding: 16px 18px;
+    padding: 0;
     background: transparent;
     border: none;
-    border-radius: 18px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+    border-radius: 0;
+    box-shadow: none;
     z-index: 10;
 }
 #support-text {
@@ -264,7 +264,7 @@ button:disabled {
         <button id="clicker">Smash the Egg</button>
     </div>
     <div id="right-panel">
-        <h1>Dr Robotnik Clicker</h1>
+        <h1>The pinGame</h1>
         <div id="counter">0</div>
         <div id="click-count">Clicks: 0</div>
         <button id="buyBot">Buy Robot Assistant (10)</button>
@@ -298,14 +298,19 @@ function format(value) {
 
 function updateUI() {
     const now = performance.now();
+    const lastSample = scoreSamples[scoreSamples.length - 1];
+    if (lastSample && score < lastSample.score) {
+        scoreSamples.length = 0;
+    }
+
     scoreSamples.push({ score, time: now });
     while (scoreSamples.length > 1 && now - scoreSamples[0].time > 1000) {
         scoreSamples.shift();
     }
 
-    const firstSample = scoreSamples[0];
+    const firstSample = scoreSamples[0] || { score, time: now };
     const elapsedSeconds = Math.max((now - firstSample.time) / 1000, 0.001);
-    const measuredCps = (score - firstSample.score) / elapsedSeconds;
+    const measuredCps = Math.max(0, (score - firstSample.score) / elapsedSeconds);
 
     counterEl.textContent = format(score);
     clickCountEl.textContent = `Clicks: ${clickCount}`;
@@ -315,6 +320,9 @@ function updateUI() {
     buyBotBtn.disabled = score < costs.bot;
     buyDrillBtn.disabled = score < costs.drill;
 }
+
+const smashSound = document.getElementById('smashSound');
+smashSound.volume = 0.35;
 
 const sprite = new Image();
 sprite.src = 'robotnikhead.png';
